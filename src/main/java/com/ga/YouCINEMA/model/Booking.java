@@ -1,11 +1,19 @@
 package com.ga.YouCINEMA.model;
+import lombok.*;
+import jakarta.persistence.*;
 
 import com.ga.YouCINEMA.enums.BookingStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-
+@Entity
+@Table(name = "bookings")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Booking {
 
     private Long id;
