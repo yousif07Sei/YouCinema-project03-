@@ -2,10 +2,17 @@ package com.ga.YouCINEMA.model;
 
 import com.ga.YouCINEMA.enums.UserRole;
 import com.ga.YouCINEMA.enums.UserStatus;
-
-import java.time.LocalDate;
+import lombok.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
 
     private Long id;

@@ -1,9 +1,16 @@
 package com.ga.YouCINEMA.model;
+import lombok.*;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-
+@Entity
+@Table(name = "showtimes")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Showtime {
 
     private Long id;

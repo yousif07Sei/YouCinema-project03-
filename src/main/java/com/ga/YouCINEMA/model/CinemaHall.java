@@ -1,7 +1,18 @@
 package com.ga.YouCINEMA.model;
+import lombok.*;
+import jakarta.persistence.*;
+
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+@Entity
+@Table(name = "cinema_halls")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CinemaHall {
 
     private Long id;
