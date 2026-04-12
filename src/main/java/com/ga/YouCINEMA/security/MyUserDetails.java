@@ -1,5 +1,6 @@
 package com.ga.YouCINEMA.security;
 
+import com.ga.YouCINEMA.enums.UserStatus;
 import com.ga.YouCINEMA.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,7 +50,7 @@ public class MyUserDetails implements UserDetails {
     }
     @Override
     public boolean isEnabled(){
-        return user.isActive();
+        return user.isEmailVerified() && user.getStatus() == UserStatus.ACTIVE;
     }
 
 
