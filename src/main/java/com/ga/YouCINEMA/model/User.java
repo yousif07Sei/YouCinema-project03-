@@ -1,5 +1,8 @@
 package com.ga.YouCINEMA.model;
 
+import com.ga.YouCINEMA.enums.UserRole;
+import com.ga.YouCINEMA.enums.UserStatus;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
