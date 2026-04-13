@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-public class YouCinemaUserDetailsService implements UserDetailsService {
+public class MyUserDetailsService implements UserDetailsService {
 
     private UserRepository userRepository;
 
@@ -27,6 +27,6 @@ public class YouCinemaUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found with email: " + email));
 
-        return new YouCinemaUserDetails(user);
+        return new MyUserDetails(user);
     }
 }
