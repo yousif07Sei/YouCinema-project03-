@@ -29,4 +29,10 @@ public class AuthController {
     public ResponseEntity<AuthenticatedUserResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
+
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<AuthenticatedUserResponse> verifyEmail(@RequestParam String token) {
+        return ResponseEntity.ok(authService.verifyEmail(token));
+    }
 }

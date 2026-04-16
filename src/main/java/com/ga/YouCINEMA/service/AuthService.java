@@ -8,6 +8,7 @@ import com.ga.YouCINEMA.enums.UserRole;
 import com.ga.YouCINEMA.enums.UserStatus;
 import com.ga.YouCINEMA.model.EmailVerificationToken;
 import com.ga.YouCINEMA.model.User;
+import com.ga.YouCINEMA.repository.EmailVerificationTokenRepository;
 import com.ga.YouCINEMA.repository.UserRepository;
 import com.ga.YouCINEMA.util.EmailUtils;
 import com.ga.YouCINEMA.util.JwtUtils;
@@ -113,6 +114,32 @@ public class AuthService {
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .message("Login successful")
+                .build();
+    }
+
+    public AuthenticatedUserResponse verifyEmail(String token) {
+
+        // Find the token
+        EmailVerificationToken verificationToken = emailVerificationTokenRepository
+                .findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid verification token"));
+
+        // Check if token is expired
+        if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Verification token has expired");
+        }
+
+        // Mark user as verified
+        User user = verificationToken.getUser();
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        // Delete the used token
+        emailVerificationTokenRepository.deleteByUserId(user.getId());
+
+        return AuthenticatedUserResponse.builder()
+                .email(user.getEmail())
+                .message("Email verified successfully. You can now log in.")
                 .build();
     }
 }
