@@ -48,7 +48,7 @@ public class UserController {
 
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UserResponse> softDeleteAdmin(@PathVariable Long id) {
         return ResponseEntity.ok(userService.softDeleteAdmin(id));
     }
