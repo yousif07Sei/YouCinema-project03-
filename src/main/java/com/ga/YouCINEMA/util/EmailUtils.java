@@ -23,4 +23,17 @@ public class EmailUtils {
                 + "\n\nYouCinema Team");
         mailSender.send(message);
     }
+
+    public void sendPasswordResetEmail(String toEmail, String token) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("YouCinema - Reset Your Password");
+        message.setText("Hi! \n\nYou requested to reset your password.\n\n"
+                + "Your reset token is: " + token
+                + "\n\nUse this token in the reset password endpoint."
+                + "\n\nThis token expires in 1 hour."
+                + "\n\nIf you did not request this, please ignore this email."
+                + "\n\nYouCinema Team");
+        mailSender.send(message);
+    }
 }
