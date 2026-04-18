@@ -1,7 +1,6 @@
 package com.ga.YouCINEMA.controller;
 
-import com.ga.YouCINEMA.dto.request.LoginRequest;
-import com.ga.YouCINEMA.dto.request.RegisterRequest;
+import com.ga.YouCINEMA.dto.request.*;
 
 import com.ga.YouCINEMA.dto.response.AuthenticatedUserResponse;
 import com.ga.YouCINEMA.service.AuthService;
@@ -9,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 
 @RestController
@@ -34,5 +35,24 @@ public class AuthController {
     @GetMapping("/verify-email")
     public ResponseEntity<AuthenticatedUserResponse> verifyEmail(@RequestParam String token) {
         return ResponseEntity.ok(authService.verifyEmail(token));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<AuthenticatedUserResponse> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<AuthenticatedUserResponse> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(authService.resetPassword(request));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<AuthenticatedUserResponse> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            Principal principal) {
+        return ResponseEntity.ok(authService.changePassword(principal.getName(), request));
     }
 }

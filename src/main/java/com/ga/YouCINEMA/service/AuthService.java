@@ -1,14 +1,15 @@
 package com.ga.YouCINEMA.service;
 
-import com.ga.YouCINEMA.dto.request.LoginRequest;
-import com.ga.YouCINEMA.dto.request.RegisterRequest;
+import com.ga.YouCINEMA.dto.request.*;
 
 import com.ga.YouCINEMA.dto.response.AuthenticatedUserResponse;
 import com.ga.YouCINEMA.enums.UserRole;
 import com.ga.YouCINEMA.enums.UserStatus;
 import com.ga.YouCINEMA.model.EmailVerificationToken;
+import com.ga.YouCINEMA.model.PasswordResetToken;
 import com.ga.YouCINEMA.model.User;
 import com.ga.YouCINEMA.repository.EmailVerificationTokenRepository;
+import com.ga.YouCINEMA.repository.PasswordResetTokenRepository;
 import com.ga.YouCINEMA.repository.UserRepository;
 import com.ga.YouCINEMA.util.EmailUtils;
 import com.ga.YouCINEMA.util.JwtUtils;
@@ -39,6 +40,9 @@ public class AuthService {
 
     @Autowired
     private EmailUtils emailUtils;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     public AuthenticatedUserResponse register(RegisterRequest request) {
 
@@ -142,4 +146,78 @@ public class AuthService {
                 .message("Email verified successfully. You can now log in.")
                 .build();
     }
+
+    public AuthenticatedUserResponse forgotPassword(ForgotPasswordRequest request) {
+
+        // Find user by email
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("No account found with that email"));
+
+        // Delete any existing reset tokens for this user
+        passwordResetTokenRepository.deleteByUserId(user.getId());
+
+        // Generate reset token
+        String tokenValue = UUID.randomUUID().toString();
+
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .user(user)
+                .token(tokenValue)
+                .expiresAt(LocalDateTime.now().plusHours(1))
+                .build();
+
+        passwordResetTokenRepository.save(resetToken);
+
+        // Send reset email
+        emailUtils.sendPasswordResetEmail(user.getEmail(), tokenValue);
+
+        return AuthenticatedUserResponse.builder()
+                .message("Password reset link sent to your email.")
+                .build();
+    }
+    public AuthenticatedUserResponse resetPassword(ResetPasswordRequest request) {
+
+        // Find the token
+        PasswordResetToken resetToken = passwordResetTokenRepository
+                .findByToken(request.getToken())
+                .orElseThrow(() -> new RuntimeException("Invalid reset token"));
+
+        // Check if token is expired
+        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Reset token has expired");
+        }
+
+        // Update password
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        // Delete the used token
+        passwordResetTokenRepository.deleteByUserId(user.getId());
+
+        return AuthenticatedUserResponse.builder()
+                .email(user.getEmail())
+                .message("Password reset successfully. You can now log in.")
+                .build();
+    }
+    public AuthenticatedUserResponse changePassword(String email, ChangePasswordRequest request) {
+
+        // Find user by email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return AuthenticatedUserResponse.builder()
+                .email(user.getEmail())
+                .message("Password changed successfully.")
+                .build();
+    }
+
 }
