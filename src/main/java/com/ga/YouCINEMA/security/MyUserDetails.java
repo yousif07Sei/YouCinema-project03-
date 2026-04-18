@@ -21,7 +21,7 @@ public class MyUserDetails implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities(){
         return new HashSet<>(
                 List.of(
-                        new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+                        new SimpleGrantedAuthority(user.getRole().name())
                 )
         );
     }
