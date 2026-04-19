@@ -36,6 +36,11 @@ public class BookingService {
         this.showtimeRepository = showtimeRepository;
     }
 
+    @Autowired
+    public void setSeatRepository(SeatRepository seatRepository) {
+        this.seatRepository = seatRepository;
+    }
+
     @Transactional
     public BookingResponse createBooking(BookingRequest request) {
         // Get logged-in user
