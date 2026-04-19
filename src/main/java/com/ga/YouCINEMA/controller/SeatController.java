@@ -14,7 +14,14 @@ import java.util.List;
 @RestController
 public class SeatController {
 
+
     private SeatService seatService;
+
+
+    @Autowired
+    public void setSeatService(SeatService seatService) {
+        this.seatService = seatService;
+    }
 
     @GetMapping("/api/halls/{hallId}/seats")
     public ResponseEntity<List<SeatResponse>> getSeatsByHall(@PathVariable Long hallId) {
