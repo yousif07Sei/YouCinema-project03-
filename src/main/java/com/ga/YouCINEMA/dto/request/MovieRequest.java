@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,7 +17,7 @@ public class MovieRequest {
     @NotBlank(message = "Title is required")
     private String title;
 
-    @NotBlank(message = "Description is required")
+
     private String description;
 
     @NotBlank(message = "Genre is required")
@@ -26,8 +28,10 @@ public class MovieRequest {
 
     @NotNull(message = "Duration is required")
     @Positive(message = "Duration must be positive")
-    private Integer durationMinutes;
+    private Integer duration;
 
     @NotBlank(message = "Director is required")
     private String director;
+
+    private LocalDate releaseDate;
 }
