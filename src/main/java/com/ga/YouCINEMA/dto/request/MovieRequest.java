@@ -30,8 +30,7 @@ public class MovieRequest {
     @Positive(message = "Duration must be positive")
     private Integer duration;
 
-    @NotBlank(message = "Director is required")
-    private String director;
+
 
     private LocalDate releaseDate;
 }
