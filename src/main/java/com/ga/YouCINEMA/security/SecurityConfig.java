@@ -58,7 +58,9 @@ public class SecurityConfig {
                                 "/auth/forgot-password",
                                 "/auth/reset-password",
                                 "/auth/change-password",
-                                "/uploads/**"
+                                "/uploads/**",
+                                "/api/movies",
+                                "/api/movies/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
