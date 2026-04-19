@@ -60,7 +60,9 @@ public class SecurityConfig {
                                 "/auth/change-password",
                                 "/uploads/**",
                                 "/api/movies",
-                                "/api/movies/**"
+                                "/api/movies/**",
+                                "/api/halls",
+                                "/api/halls/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
