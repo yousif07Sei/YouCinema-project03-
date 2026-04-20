@@ -7,6 +7,8 @@ import com.ga.YouCINEMA.repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.ga.YouCINEMA.exception.InformationNotFoundException;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,13 +50,13 @@ public class MovieService {
 
     public MovieResponse getMovieById(Long id) {
         Movie movie = movieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movie not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Movie not found"));
         return mapToMovieResponse(movie);
     }
 
     public MovieResponse updateMovie(Long id, MovieRequest request) {
         Movie movie = movieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movie not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Movie not found"));
 
         movie.setTitle(request.getTitle());
         movie.setDescription(request.getDescription());
@@ -70,14 +72,14 @@ public class MovieService {
 
     public void deleteMovie(Long id) {
         if (!movieRepository.existsById(id)) {
-            throw new RuntimeException("Movie not found");
+            throw new InformationNotFoundException("Movie not found");
         }
         movieRepository.deleteById(id);
     }
 
     public MovieResponse uploadPoster(Long id, MultipartFile file) {
         Movie movie = movieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movie not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Movie not found"));
 
         try {
             String uploadDir = "uploads/posters/";

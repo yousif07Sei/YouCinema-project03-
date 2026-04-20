@@ -9,6 +9,8 @@ import com.ga.YouCINEMA.repository.ShowtimeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.ga.YouCINEMA.exception.InformationNotFoundException;
+
 import java.util.List;
 
 
@@ -37,7 +39,7 @@ public class SeatService {
 
     public List<SeatResponse> getSeatsByHall(Long hallId) {
         if (!cinemaHallRepository.existsById(hallId)) {
-            throw new RuntimeException("Cinema hall not found");
+            throw new InformationNotFoundException("Cinema hall not found");
         }
         return seatRepository.findByCinemaHallId(hallId)
                 .stream()
@@ -47,7 +49,7 @@ public class SeatService {
 
     public List<SeatResponse> getAvailableSeatsByShowtime(Long showtimeId) {
         if (!showtimeRepository.existsById(showtimeId)) {
-            throw new RuntimeException("Showtime not found");
+            throw new InformationNotFoundException("Showtime not found");
         }
         return seatRepository.findAvailableSeatsByShowtime(showtimeId)
                 .stream()
@@ -58,7 +60,7 @@ public class SeatService {
 
     public SeatResponse updateSeatType(Long id, UpdateSeatTypeRequest request) {
         Seat seat = seatRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seat not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Seat not found"));
         seat.setSeatType(request.getSeatType());
         seatRepository.save(seat);
         return mapToResponse(seat);

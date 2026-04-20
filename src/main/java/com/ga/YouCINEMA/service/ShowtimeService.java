@@ -11,6 +11,8 @@ import com.ga.YouCINEMA.repository.ShowtimeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.ga.YouCINEMA.exception.InformationNotFoundException;
+
 import java.util.List;
 
 @Service
@@ -37,10 +39,10 @@ public class ShowtimeService {
 
     public ShowtimeResponse createShowtime(ShowtimeRequest request) {
         Movie movie = movieRepository.findById(request.getMovieId())
-                .orElseThrow(() -> new RuntimeException("Movie not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Movie not found"));
 
         CinemaHall hall = cinemaHallRepository.findById(request.getHallId())
-                .orElseThrow(() -> new RuntimeException("Cinema hall not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Cinema hall not found"));
 
         Showtime showtime = Showtime.builder()
                 .movie(movie)
@@ -63,13 +65,13 @@ public class ShowtimeService {
 
     public ShowtimeResponse getShowtimeById(Long id) {
         Showtime showtime = showtimeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Showtime not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Showtime not found"));
         return mapToResponse(showtime);
     }
 
     public void deleteShowtime(Long id) {
         if (!showtimeRepository.existsById(id)) {
-            throw new RuntimeException("Showtime not found");
+            throw new InformationNotFoundException("Showtime not found");
         }
         showtimeRepository.deleteById(id);
     }

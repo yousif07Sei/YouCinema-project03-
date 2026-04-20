@@ -66,7 +66,8 @@ public class SecurityConfig {
                                 "/api/showtimes",
                                 "/api/showtimes/**",
                                 "/api/halls/*/seats",
-                                "/api/showtimes/*/seats/available"
+                                "/api/showtimes/*/seats/available",
+                                "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
