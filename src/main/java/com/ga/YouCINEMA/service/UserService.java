@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.ga.YouCINEMA.exception.InformationNotFoundException;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,13 +32,13 @@ public class UserService {
 
     public UserResponse getMyProfile(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new InformationNotFoundException("User not found"));
         return mapToUserResponse(user);
     }
 
     public UserResponse updateProfile(String email, UpdateProfileRequest request) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new InformationNotFoundException("User not found"));
 
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
@@ -47,7 +49,7 @@ public class UserService {
 
     public UserResponse uploadProfilePicture(String email, MultipartFile file) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new InformationNotFoundException("User not found"));
 
         try {
             // Create uploads directory if it doesn't exist
@@ -75,7 +77,7 @@ public class UserService {
 
     public UserResponse softDeleteAdmin(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new InformationNotFoundException("User not found"));
 
         user.setStatus(UserStatus.INACTIVE);
         user.setDeletedAt(LocalDateTime.now());

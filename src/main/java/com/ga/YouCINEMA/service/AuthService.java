@@ -22,6 +22,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.ga.YouCINEMA.exception.InformationNotFoundException;
+import com.ga.YouCINEMA.exception.InformationExistException;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -48,7 +51,7 @@ public class AuthService {
 
         // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new InformationExistException("Email already registered");
         }
 
         // Build and save the new user
@@ -126,7 +129,7 @@ public class AuthService {
         // Find the token
         EmailVerificationToken verificationToken = emailVerificationTokenRepository
                 .findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid verification token"));
+                .orElseThrow(() -> new InformationNotFoundException("Invalid verification token"));
 
         // Check if token is expired
         if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -151,7 +154,7 @@ public class AuthService {
 
         // Find user by email
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("No account found with that email"));
+                .orElseThrow(() -> new InformationNotFoundException("No account found with that email"));
 
         // Delete any existing reset tokens for this user
         passwordResetTokenRepository.deleteByUserId(user.getId());
@@ -179,7 +182,7 @@ public class AuthService {
         // Find the token
         PasswordResetToken resetToken = passwordResetTokenRepository
                 .findByToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Invalid reset token"));
+                .orElseThrow(() -> new InformationNotFoundException("Invalid reset token"));
 
         // Check if token is expired
         if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -203,7 +206,7 @@ public class AuthService {
 
         // Find user by email
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new InformationNotFoundException("User not found"));
 
         // Verify current password
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {

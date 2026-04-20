@@ -14,6 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ga.YouCINEMA.exception.InformationExistException;
+import com.ga.YouCINEMA.exception.InformationNotFoundException;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,13 +53,13 @@ public class BookingService {
 
         // Get showtime
         Showtime showtime = showtimeRepository.findById(request.getShowtimeId())
-                .orElseThrow(() -> new RuntimeException("Showtime not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Showtime not found"));
 
         // Get and validate seats
         List<Seat> seats = new ArrayList<>();
         for (Long seatId : request.getSeatIds()) {
             Seat seat = seatRepository.findById(seatId)
-                    .orElseThrow(() -> new RuntimeException("Seat not found: " + seatId));
+                    .orElseThrow(() -> new InformationNotFoundException("Seat not found: " + seatId));
 
             // Check seat belongs to the showtime's hall
             if (!seat.getCinemaHall().getId().equals(showtime.getCinemaHall().getId())) {
@@ -115,14 +118,14 @@ public class BookingService {
         User user = userDetails.getUser();
 
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Booking not found"));
 
         if (!booking.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("You can only cancel your own bookings");
         }
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
-            throw new RuntimeException("Booking is already cancelled");
+            throw new InformationExistException("Booking is already cancelled");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);

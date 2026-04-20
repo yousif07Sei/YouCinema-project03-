@@ -10,6 +10,7 @@ import com.ga.YouCINEMA.repository.CinemaHallRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ga.YouCINEMA.exception.InformationNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,14 +49,14 @@ public class CinemaHallService {
 
     public CinemaHallResponse getHallById(Long id) {
         CinemaHall hall = cinemaHallRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cinema hall not found"));
+                .orElseThrow(() -> new InformationNotFoundException("Cinema hall not found"));
         return mapToResponse(hall);
     }
 
 
     public void deleteHall(Long id) {
         if (!cinemaHallRepository.existsById(id)) {
-            throw new RuntimeException("Cinema hall not found");
+            throw new InformationNotFoundException("Cinema hall not found");
         }
         cinemaHallRepository.deleteById(id);
     }
