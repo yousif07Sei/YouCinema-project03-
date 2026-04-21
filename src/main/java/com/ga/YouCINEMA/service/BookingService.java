@@ -3,6 +3,8 @@ package com.ga.YouCINEMA.service;
 import com.ga.YouCINEMA.dto.request.BookingRequest;
 import com.ga.YouCINEMA.dto.response.BookingResponse;
 import com.ga.YouCINEMA.enums.BookingStatus;
+import com.ga.YouCINEMA.exception.InformationExistException;
+import com.ga.YouCINEMA.exception.InformationNotFoundException;
 import com.ga.YouCINEMA.model.*;
 import com.ga.YouCINEMA.repository.BookingRepository;
 import com.ga.YouCINEMA.repository.SeatRepository;
@@ -14,20 +16,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ga.YouCINEMA.exception.InformationExistException;
-import com.ga.YouCINEMA.exception.InformationNotFoundException;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class BookingService {
 
+    // One lock per seat ID — application level concurrency control
+    private final ConcurrentHashMap<Long, ReentrantLock> seatLocks = new ConcurrentHashMap<>();
+
     private BookingRepository bookingRepository;
     private ShowtimeRepository showtimeRepository;
-    private SeatRepository seatRepository;
 
+    @Autowired
+    private SeatRepository seatRepository;
 
     @Autowired
     public void setBookingRepository(BookingRepository bookingRepository) {
@@ -39,9 +44,8 @@ public class BookingService {
         this.showtimeRepository = showtimeRepository;
     }
 
-    @Autowired
-    public void setSeatRepository(SeatRepository seatRepository) {
-        this.seatRepository = seatRepository;
+    private ReentrantLock getLockForSeat(Long seatId) {
+        return seatLocks.computeIfAbsent(seatId, id -> new ReentrantLock());
     }
 
     @Transactional
@@ -61,43 +65,73 @@ public class BookingService {
             Seat seat = seatRepository.findById(seatId)
                     .orElseThrow(() -> new InformationNotFoundException("Seat not found: " + seatId));
 
-            // Check seat belongs to the showtime's hall
             if (!seat.getCinemaHall().getId().equals(showtime.getCinemaHall().getId())) {
-                throw new RuntimeException("Seat " + seat.getSeatNumber() + " does not belong to this showtime's hall");
+                throw new InformationNotFoundException("Seat " + seat.getSeatNumber() + " does not belong to this showtime's hall");
             }
 
             seats.add(seat);
         }
 
-        // Calculate total price
-        BigDecimal totalPrice = showtime.getPrice()
-                .multiply(BigDecimal.valueOf(seats.size()));
-
-        // Create booking
-        Booking booking = Booking.builder()
-                .user(user)
-                .showtime(showtime)
-                .totalPrice(totalPrice)
-                .status(BookingStatus.CONFIRMED)
-                .bookedSeats(new ArrayList<>())
-                .build();
-
-        // Create booking seats — @Version on Seat handles concurrency
+        // Acquire locks for all seats — application level
+        List<ReentrantLock> acquiredLocks = new ArrayList<>();
         try {
             for (Seat seat : seats) {
-                BookingSeat bookingSeat = BookingSeat.builder()
-                        .booking(booking)
-                        .seat(seat)
-                        .build();
-                booking.getBookedSeats().add(bookingSeat);
-                seatRepository.save(seat); // triggers version check
+                ReentrantLock lock = getLockForSeat(seat.getId());
+                lock.lock();
+                acquiredLocks.add(lock);
             }
-        } catch (OptimisticLockException e) {
-            throw new RuntimeException("One or more seats were just booked by another user. Please select different seats.");
-        }
 
-        bookingRepository.save(booking);
-        return mapToResponse(booking);
+            // Check if any seat is already booked for this showtime
+            for (Seat seat : seats) {
+                boolean alreadyBooked = bookingRepository
+                        .existsByShowtimeIdAndBookedSeatsSeatIdAndStatusNot(
+                                showtime.getId(),
+                                seat.getId(),
+                                BookingStatus.CANCELLED
+                        );
+                if (alreadyBooked) {
+                    throw new InformationExistException(
+                            "Seat " + seat.getSeatNumber() + " is already booked for this showtime"
+                    );
+                }
+            }
+
+            // Calculate total price
+            BigDecimal totalPrice = showtime.getPrice()
+                    .multiply(BigDecimal.valueOf(seats.size()));
+
+            // Create booking
+            Booking booking = Booking.builder()
+                    .user(user)
+                    .showtime(showtime)
+                    .totalPrice(totalPrice)
+                    .status(BookingStatus.CONFIRMED)
+                    .bookedSeats(new ArrayList<>())
+                    .build();
+
+            // Create booking seats — @Version handles DB level concurrency
+            try {
+                for (Seat seat : seats) {
+                    BookingSeat bookingSeat = BookingSeat.builder()
+                            .booking(booking)
+                            .seat(seat)
+                            .build();
+                    booking.getBookedSeats().add(bookingSeat);
+                    seatRepository.save(seat); // triggers version check
+                }
+            } catch (OptimisticLockException e) {
+                throw new InformationExistException("One or more seats were just booked by another user. Please select different seats.");
+            }
+
+            bookingRepository.save(booking);
+            return mapToResponse(booking);
+
+        } finally {
+            // Always release all locks
+            for (ReentrantLock lock : acquiredLocks) {
+                lock.unlock();
+            }
+        }
     }
 
     public List<BookingResponse> getMyBookings() {
@@ -151,7 +185,4 @@ public class BookingService {
                 .bookedAt(booking.getBookedAt())
                 .build();
     }
-
-
-
 }
