@@ -103,6 +103,26 @@ Authorization: Bearer <your_token>
 
 ---
 
+## ❌ Error Handling
+
+All errors return clean JSON responses via `GlobalExceptionHandler`:
+
+| Status | Meaning |
+|---|---|
+| 400 | Bad Request — validation error |
+| 403 | Forbidden — insufficient role |
+| 404 | Not Found — resource does not exist |
+| 409 | Conflict — seat already booked / resource already exists |
+
+Example:
+```json
+{
+    "error": "Seat A5 is already booked for this showtime"
+}
+```
+
+---
+
 ## 🗂 Project Structure
 
 ```
@@ -117,7 +137,7 @@ com.ga.YouCINEMA/
 ├── enums/            # Enums (UserRole, SeatStatus, BookingStatus, etc.)
 ├── security/         # JWT filter, UserDetails, SecurityConfig
 ├── util/             # JwtUtils, EmailUtils
-├── exception/        # Custom exceptions
+├── exception/        # Custom exceptions + GlobalExceptionHandler
 └── seeder/           # Data seeders
 ```
 
@@ -183,4 +203,4 @@ See [ENDPOINTS.md](ENDPOINTS.md) for the full endpoint reference.
 ## 👤 Author
 
 **Yousif**  
-Built as a portfolio project — YouCINEMA 🎬
+YouCINEMA 🎬
